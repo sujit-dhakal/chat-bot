@@ -1,0 +1,11 @@
+.git
+.gitignore
+.venv
+__pycache__
+*.pyc
+chroma_db
+rag_app.db
+app.log
+.env
+frontend
+node_modules

@@ -1,32 +1,72 @@
-# Chatbot Project
+# DocuChat AI — Document RAG with Google Gemini & PostgreSQL
 
-This repository contains a chatbot built using OpenAI, LangChain, FastAPI, and Docker. The chatbot is designed to answer user queries with powerful language understanding capabilities, making it suitable for various applications such as customer support, e-commerce, or general Q&A.
+A full-stack Retrieval-Augmented Generation (RAG) platform to upload documents (PDF, DOCX, TXT, Markdown, HTML) and chat with them using Google Gemini models, ChromaDB vector store, and PostgreSQL for chat & document metadata persistence.
 
-# Prerequisites
+## 🚀 Architecture
 
-- Docker: Ensure Docker is installed on your system.
-- OpenAI API Key: Obtain an API key from OpenAI.
+- **Frontend**: Next.js 16 (App Router, Tailwind CSS, Lucide Icons, IME-safe chat input)
+- **Backend**: FastAPI, LangChain, `langchain-google-genai` (Gemini 3.8 / 3.7 Flash)
+- **Vector Database**: ChromaDB with local embeddings (document upload does not consume Gemini quota)
+- **Relational Database**: PostgreSQL 16 (chat logs, sessions, document tracking)
+- **Orchestration**: Docker Compose
 
-# Clone the Repository
+---
 
-    git clone https://github.com/sujit-dhakal/chat-bot.git
+## 🛠️ Quick Start
 
-# Environment Variables
+### 1. Configure Your Google API Key
+Create or edit `.env` in the root folder:
 
-Create a .env file in the root directory and add the following:
+```bash
+cp .env.example .env
+```
 
-    OPENAI_API_KEY=<your_openai_api_key>
+Add your Google Gemini API key:
+```env
+GOOGLE_API_KEY=AIzaSy...
+```
+*(You can also input your API key dynamically via the frontend Settings modal anytime without restarting Docker!)*
 
-# Build and Run with Docker
+### 2. Start the Stack with Docker Compose
+```bash
+docker compose up -d
+```
 
-Build the Docker image:
+This starts 3 containers:
+1. **Frontend**: http://localhost:3001 (configurable via `FRONTEND_BIND_HOST` and `FRONTEND_PORT`)
+2. **FastAPI Backend**: http://localhost:8000 (API docs at http://localhost:8000/docs; configurable via `BACKEND_BIND_HOST` and `BACKEND_HOST_PORT`)
+3. **PostgreSQL**: `localhost:5433` (configurable via `POSTGRES_HOST_PORT`)
 
-    docker build -t chatbot .
+To use a different local interface or port, set these values in `.env`, for example:
 
-Run the Docker container:
+```env
+BACKEND_BIND_HOST=127.0.0.1
+BACKEND_HOST_PORT=8000
+BACKEND_URL=http://backend:8080
+```
 
-    docker run -d -p 8000:8000 --env-file .env chatbot
+`BACKEND_URL` is the URL used by the frontend container and should remain `http://backend:8080` with Docker Compose. `BACKEND_BIND_HOST` controls where the backend is exposed on the host; use `0.0.0.0` to expose it on all interfaces.
 
-# API Endpoints
+Set `CORS_ORIGINS=*` for local development to allow requests from any origin. Restrict this to your frontend URL before deploying publicly.
 
-The chatbot API will be available at http://localhost:8000/docs.
+---
+
+## 📖 Usage Guide
+
+1. **Open the App**: Navigate to [http://localhost:3001](http://localhost:3001).
+2. **Settings**: If you didn't add your Google API key to `.env`, click the gear icon in the top left and paste your key.
+3. **Upload Documents**: In the left sidebar, click the upload box to upload PDF, Word (`.docx`), Markdown, or text files. The backend splits them into chunks and indexes them into ChromaDB using local embeddings, so uploading documents does not consume Gemini API quota.
+4. **Chat & Retrieve**: Ask questions about your uploaded documents in the main chat interface. Responses cite relevant document context sources.
+5. **Filter by Document**: Click on any document in the list to restrict queries only to that specific document, or ask across your entire uploaded knowledge base.
+6. **Chat History**: Previous sessions are automatically saved in PostgreSQL and can be resumed or deleted from the sidebar.
+
+---
+
+## 🛑 Stopping the Stack
+```bash
+docker compose down
+```
+To also remove stored database volumes:
+```bash
+docker compose down -v
+```
