@@ -49,6 +49,17 @@ interface SessionItem {
   message_count: number;
 }
 
+function generateUUID(): string {
+  if (typeof window !== "undefined" && window.crypto && typeof window.crypto.randomUUID === "function") {
+    return window.crypto.randomUUID();
+  }
+  return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, (c) => {
+    const r = (Math.random() * 16) | 0;
+    const v = c === "x" ? r : (r & 0x3) | 0x8;
+    return v.toString(16);
+  });
+}
+
 interface HealthState {
   status: string;
   database: string;
@@ -70,7 +81,7 @@ export default function DocumentChatPage() {
   const [currentSessionId, setCurrentSessionId] = useState<string>("");
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputQuery, setInputQuery] = useState<string>("");
-  const [selectedModel, setSelectedModel] = useState<string>("gemini-3.8-flash");
+  const [selectedModel, setSelectedModel] = useState<string>("gemini-3.5-flash-lite");
   const [isGenerating, setIsGenerating] = useState<boolean>(false);
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -164,7 +175,7 @@ export default function DocumentChatPage() {
 
   // Switch or create session
   const startNewChat = () => {
-    const newId = crypto.randomUUID();
+    const newId = generateUUID();
     setCurrentSessionId(newId);
     setMessages([]);
     setInputQuery("");
@@ -297,13 +308,13 @@ export default function DocumentChatPage() {
       return;
     }
 
-    const sessionId = currentSessionId || crypto.randomUUID();
+    const sessionId = currentSessionId || generateUUID();
     if (!currentSessionId) {
       setCurrentSessionId(sessionId);
     }
 
     const userMessage: Message = {
-      id: crypto.randomUUID(),
+      id: generateUUID(),
       role: "user",
       content: query,
       timestamp: new Date().toISOString(),
@@ -338,7 +349,7 @@ export default function DocumentChatPage() {
       }
 
       const assistantMessage: Message = {
-        id: crypto.randomUUID(),
+        id: generateUUID(),
         role: "assistant",
         content: data.answer,
         sources: data.sources || [],
@@ -351,9 +362,9 @@ export default function DocumentChatPage() {
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : "Request failed";
       const errorMsg: Message = {
-        id: crypto.randomUUID(),
+        id: generateUUID(),
         role: "assistant",
-        content: `Error: ${msg}. Check your Google API key in Settings.`,
+        content: `Error: ${msg}`,
         timestamp: new Date().toISOString(),
       };
       setMessages((prev) => [...prev, errorMsg]);
@@ -621,7 +632,10 @@ export default function DocumentChatPage() {
               onChange={(e) => setSelectedModel(e.target.value)}
               className="bg-white border border-[#E5E5E5] text-xs rounded-md px-2.5 py-1 text-[#171717] focus:outline-none focus:border-[#171717] transition-colors"
             >
-              <option value="gemini-3.8-flash">Gemini 3.8 Flash (Fast)</option>
+              <option value="gemini-3.5-flash-lite">Gemini 3.5 Flash Lite (Fastest & Stable)</option>
+              <option value="gemini-3.6-flash">Gemini 3.6 Flash</option>
+              <option value="gemini-3.5-flash">Gemini 3.5 Flash</option>
+              <option value="gemini-3.8-flash">Gemini 3.8 Flash</option>
               <option value="gemini-3.7-flash">Gemini 3.7 Flash</option>
             </select>
           </div>

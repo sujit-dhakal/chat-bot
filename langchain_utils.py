@@ -64,7 +64,7 @@ def _format_docs(docs: list[Document]) -> str:
 def run_rag_query(
     question: str,
     chat_history: list[dict],
-    model: str = "gemini-3.8-flash",
+    model: str = "gemini-3.5-flash-lite",
     file_ids: Optional[list[int]] = None,
     api_key: Optional[str] = None,
 ) -> dict:

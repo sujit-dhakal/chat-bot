@@ -43,6 +43,11 @@ logger = logging.getLogger(__name__)
 def _google_error_response(exc: Exception) -> tuple[int, str] | None:
     """Map common Gemini API failures to actionable HTTP responses."""
     error_text = str(exc)
+    if "UNAUTHENTICATED" in error_text or "API_KEY_INVALID" in error_text or "401" in error_text:
+        return (
+            401,
+            "Invalid Google API key. Check your key in Settings or update GOOGLE_API_KEY in .env.",
+        )
     if "RESOURCE_EXHAUSTED" in error_text or "429" in error_text:
         return (
             429,
